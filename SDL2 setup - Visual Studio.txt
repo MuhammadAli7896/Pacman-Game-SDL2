@@ -1,0 +1,212 @@
+1. Download SDL2 zip file SDL2-devel-2.26.5-VC.zip from https://github.com/libsdl-org/SDL/releases/tag/release-2.26.5 
+2. Unzip that folder
+3. In that folder there is only one folder SDL2...... named. Move that to any other location in C drive 
+4. Now open visual studio with setup of C++ desktop development and create an empty C++ project
+5. Make a C++ source file in that project via solution explorer. Name the file main.cpp
+6. Now edit some properties of your project in visual studio
+7. In C/C++ general section, add your include folder path which is in your SDL2 folder which you have moved to C drive in the Additional include Directories section
+8. In linker general section, add your lib >> x64 folder path which is in SDL2 folder in additional library directories
+9. Now in linker input section, in additional dependencies section, add SDL2.lib and SDL2main.lib 
+10. Last in linker system section, check that the subsystem is having console subsystem if not select it from drop-down and add it.
+11. Apply all settings and click OK
+12. Now one more thing, copy the SDL2.dll file which is in SDL2 >> lib >> x64 folder to your project where your main.cpp file is
+13. Copy path of SDL2 >> lib >> x64 folder to the environmental variables >> system variables >> path
+14. Do same things of adding library and include directories in VC++ Directories section in Properties of the folder
+15. Do same procedure for SDL image and SDL ttf library.
+16. In additional dependencies write SDL_image.lib and SDL_ttf.lib.
+17. Download their zip files from https://github.com/libsdl-org/SDL_image/releases and https://github.com/libsdl-org/SDL_ttf/releases
+
+
+Test program to run for SDL2:
+
+#include <SDL.h>
+#include <iostream>
+
+int main(int argv, char** args)
+{
+    SDL_Init(SDL_INIT_EVERYTHING);
+
+    SDL_Window *window = SDL_CreateWindow("Hello SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, 0);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
+
+    bool isRunning = true;
+    SDL_Event event;
+
+    while (isRunning)
+    {
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+            case SDL_QUIT:
+                isRunning = false;
+                break;
+
+            case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_ESCAPE)
+                {
+                    isRunning = false;
+                }
+            }
+        }
+
+        SDL_RenderClear(renderer);
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+
+        SDL_RenderPresent(renderer);
+    }
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
+}
+
+
+
+Test program to run for SDL2 and SDL_image:
+
+#include <iostream>
+#include <SDL.h>
+#include <SDL_image.h>
+
+int main(int argv, char** args) {
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cout << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+        return 1;
+    }
+
+    // Initialize SDL_image
+    int imgFlags = IMG_INIT_PNG;
+    if ((IMG_Init(imgFlags) & imgFlags) != imgFlags) {
+        std::cout << "Failed to initialize SDL_image: " << IMG_GetError() << std::endl;
+        return 1;
+    }
+
+    // Load and display an image
+    SDL_Window* window = SDL_CreateWindow("SDL_image Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Surface* imageSurface = IMG_Load("path/to/your/image.png");
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
+
+    // Clear the renderer
+    SDL_RenderClear(renderer);
+
+    // Render the texture
+    SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+
+    // Update the screen
+    SDL_RenderPresent(renderer);
+
+    // Wait for a key press to exit
+    bool quit = false;
+    SDL_Event event;
+    while (!quit) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                quit = true;
+            }
+            if (event.type == SDL_KEYDOWN) {
+                quit = true;
+            }
+        }
+    }
+
+    // Clean up
+    SDL_DestroyTexture(texture);
+    SDL_FreeSurface(imageSurface);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    IMG_Quit();
+    SDL_Quit();
+
+    return 0;
+}
+
+
+
+Test program to run for SDL2, SDL2_image and SDL2_ttf:
+
+#include <iostream>
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
+
+int main(int argv, char** args) {
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cout << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+        return 1;
+    }
+
+    // Initialize SDL_image
+    int imgFlags = IMG_INIT_PNG;
+    if ((IMG_Init(imgFlags) & imgFlags) != imgFlags) {
+        std::cout << "Failed to initialize SDL_image: " << IMG_GetError() << std::endl;
+        return 1;
+    }
+
+    // Initialize SDL_ttf
+    if (TTF_Init() == -1) {
+        std::cout << "Failed to initialize SDL_ttf: " << TTF_GetError() << std::endl;
+        return 1;
+    }
+
+    // Load and display an image
+    SDL_Window* window = SDL_CreateWindow("SDL_image and SDL_ttf Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Surface* imageSurface = IMG_Load("path/to/your/image.png");
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
+
+    // Load and render a font
+    TTF_Font* font = TTF_OpenFont("path/to/your/font.ttf", 24);
+    if (font == nullptr) {
+        std::cout << "Failed to load font: " << TTF_GetError() << std::endl;
+        return 1;
+    }
+    SDL_Color textColor = { 255, 255, 255 }; // White color
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, "Hello, SDL_ttf!", textColor);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    // Clear the renderer
+    SDL_RenderClear(renderer);
+
+    // Render the texture and text
+    SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+    SDL_RenderCopy(renderer, textTexture, nullptr, nullptr);
+
+    // Update the screen
+    SDL_RenderPresent(renderer);
+
+    // Wait for a key press to exit
+    bool quit = false;
+    SDL_Event event;
+    while (!quit) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                quit = true;
+            }
+            if (event.type == SDL_KEYDOWN) {
+                quit = true;
+            }
+        }
+    }
+
+    // Clean up
+    SDL_DestroyTexture(textTexture);
+    SDL_FreeSurface(textSurface);
+    TTF_CloseFont(font);
+    SDL_DestroyTexture(texture);
+    SDL_FreeSurface(imageSurface);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    IMG_Quit();
+    TTF_Quit();
+    SDL_Quit();
+
+    return 0;
+}
+
+
