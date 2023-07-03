@@ -1,9 +1,11 @@
 #include <iostream>
-#include<SDL.h>
-#include<SDL_image.h>
-#include<windows.h>
-#include<cmath>
-#include<vector>
+#include <SDL.h>
+#include <SDL_image.h>
+#include <windows.h>
+#include <cmath>
+#include <vector>
+#include <ctime>
+#include <random>
 
 #define move_y 1
 #define move_x 1
@@ -19,6 +21,16 @@ Uint32 getPixelColor(SDL_Surface* surface, int x, int y)
     return SDL_MapRGB(surface->format, r, g, b);
 }
 
+int rand_value(int a, int b)
+{
+ random_device rd;
+ unsigned seed = rd() ^ static_cast<unsigned>(time(nullptr));
+ mt19937 engine(seed);
+ uniform_int_distribution<int> distribution(a, b);
+  int c = distribution(engine);
+   return c;
+}
+
 int dist(int x, int y, int x1, int y1)
 {
     int diff1 = pow(x1 - x, 2);
@@ -27,7 +39,7 @@ int dist(int x, int y, int x1, int y1)
 }
 
 int min_d(int arr[])
-{
+{ 
     int mini = 0, count = 0;
     int i = 1;
     while (i < 2)
@@ -57,8 +69,8 @@ bool ispath(int x, int y, SDL_Surface* map_)
     Uint8 r, g, b;
     pixelcolor = getPixelColor(map_, y, x);
     SDL_GetRGB(pixelcolor, map_->format, &r, &g, &b);
-    int blue[3] = { 33, 33, 255 };
-    if (int(r) != blue[0] && int(g) != blue[1] && int(b) != blue[2])
+    int blue[3] = { 0, 0, 0 };
+    if (int(r) == blue[0] && int(g) == blue[1] && int(b) == blue[2])
     {
         return true;
     }
@@ -105,7 +117,8 @@ bool findpath(int& x, int& y, int x1, int y1, SDL_Surface* map_)
     {
         if (count % 20 == 0)
         {
-            flag = rand() % 4;
+            //flag = rand() % 4;
+            flag = rand_value(0, 3);
         }
         if (flag == 0)
         {
@@ -122,43 +135,64 @@ bool findpath(int& x, int& y, int x1, int y1, SDL_Surface* map_)
             isup = true;
             isleft = isright = isdown = false;
         }
-        else 
+        else
         {
             isdown = true;
             isleft = isup = isright = false;
         }
         if (isright)
         {
-            if (ispath(y, x + 23, map_))
+            if (ispath(y, x + 23, map_) && ispath(y + 23, x + 23, map_) && ispath(y + 11, x + 23, map_))
             {
                 x++;
+            }
+            else
+            {
+                isright = false;
+                //flag = rand() % 4;
+                flag = rand_value(1, 3);
             }
         }
         else if (isleft)
         {
-            if (ispath(y, x - 1, map_))
+            if (ispath(y, x - 1, map_) && ispath(y + 23, x - 1, map_) && ispath(y + 11, x - 1, map_))
             {
                 x--;
+            }
+            else
+            {
+                isleft = false;
+                //flag = rand() % 4;
+                flag = rand_value(0, 3);
+                flag == 1 ? flag = 0 : flag = flag;
             }
         }
         else if (isup)
         {
-            if (ispath(y - 1, x, map_))
+            if (ispath(y - 1, x, map_) && ispath(y - 1, x + 23, map_) && ispath(y - 1, x + 11, map_))
             {
                 y--;
+            }
+            else
+            {
+                isup = false;
+                flag = rand_value(0, 3);
+                flag == 2 ? flag = 1 : flag = flag;
+                //flag = rand() % 4;
             }
         }
         else
         {
-            if (ispath(y + 1, x, map_))
+            if (ispath(y + 23, x, map_) && ispath(y + 23, x + 23, map_) && ispath(y + 23, x + 11, map_))
             {
                 y++;
             }
         }
-        count+=rand()%10;
+        count += rand_value(1, 10);
     }
+    ////////////////////////////////////////////////////////////////////////////////////////////
 
-    /*    if (x > x1)
+/*     if (x > x1)
         {
             x--;
             return true;
@@ -214,10 +248,13 @@ bool findpath(int& x, int& y, int x1, int y1, SDL_Surface* map_)
                 break;
             }
         }
-        foundpath = false;*/
-    //}
+        foundpath = false;
+    }
     return false;
+} */
 }
+
+
 
 void print_map(int** map_, int row, int col)
 {
@@ -244,7 +281,7 @@ int main(int argc, char** argv)
     SDL_Rect pac_rect;
     SDL_Rect inky_rect;
     pac_rect.x = 230; pac_rect.y = 242;
-    inky_rect.x = 210; inky_rect.y = 242;
+    inky_rect.x = 30; inky_rect.y = 30;
     SDL_Event ev;
     bool isrunning = true;
     bool isleft =false, isright = false, isup=false, isdown=false, isout = false;
@@ -318,7 +355,7 @@ int main(int argc, char** argv)
         }
         if (isdown)
         {
-            if ((ispath(pac_rect.y + 23, pac_rect.x, map_)))
+            if ((ispath(pac_rect.y + 25, pac_rect.x, map_)))
             {
                 pac_rect.y += move_y;
             }
@@ -334,13 +371,14 @@ int main(int argc, char** argv)
         }
         if (isright)
         {
-            if ((ispath(pac_rect.y, pac_rect.x + 23, map_)))
+            if ((ispath(pac_rect.y, pac_rect.x + 25, map_)))
             {
                 pac_rect.x += move_x;
             }
             isright = false;
         }
-        if ((inky_rect.x == 210 && inky_rect.y == 170) || isout)
+        findpath(inky_rect.x, inky_rect.y, pac_rect.x, pac_rect.y, map_);
+        /*if ((inky_rect.x == 210 && inky_rect.y == 242) || isout)
         {
             findpath(inky_rect.x, inky_rect.y, pac_rect.x, pac_rect.y, map_);
             isout = true;
@@ -348,7 +386,7 @@ int main(int argc, char** argv)
         else if (!isout)
         {
             inky_rect.y -= 1;
-        }
+        }*/
         SDL_BlitSurface(bg, NULL, window_surface, NULL);
         SDL_BlitSurface(map_, NULL, window_surface, NULL);
         SDL_BlitSurface(pac, NULL, window_surface, &pac_rect);
