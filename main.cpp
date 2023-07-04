@@ -190,7 +190,9 @@ bool findpath(int& x, int& y, int x1, int y1, SDL_Surface* map_)
         }
         count += rand_value(1, 10);
     }
+
     ////////////////////////////////////////////////////////////////////////////////////////////
+    // pathfinding algorithm
 
 /*     if (x > x1)
         {
