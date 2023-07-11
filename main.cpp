@@ -48,6 +48,11 @@ public:
 		img = IMG_Load(img_path.c_str());
 	}
 
+	void set_surface(SDL_Surface* surface)
+	{
+		img = surface;
+	}
+
 	int get_y()
 	{
 		return rect.y;
@@ -68,7 +73,7 @@ public:
 		rect.x = x;
 	}
 
-	SDL_Rect *get_rect()
+	SDL_Rect* get_rect()
 	{
 		return &rect;
 	}
@@ -220,10 +225,11 @@ public:
 
 	Enemy(string img_path, string name) :Character(img_path)
 	{
-		iseaten = false;
+		/*iseaten = false;*/
+		flag = 0;
 	}
 
-	void set_iseaten(bool val)
+	/*void set_iseaten(bool val)
 	{
 		iseaten = val;
 	}
@@ -231,7 +237,7 @@ public:
 	bool get_iseaten()
 	{
 		return iseaten;
-	}
+	}*/
 
 	string ani(string part = "")
 	{
@@ -243,22 +249,24 @@ public:
 		return img_arr[num++];
 	}
 
-	void haseaten(SDL_Rect* pac_rect)
+	SDL_Surface* haseaten(SDL_Rect* pac_rect, bool& iseaten)
 	{
 		if ((pac_rect->x <= rect.x + 23 && pac_rect->x >= rect.x) && (pac_rect->y <= rect.y + 23 && pac_rect->y >= rect.y))
 		{
 			img = nullptr;
 			iseaten = true;
 		}
+		return img;
 	}
 
-	bool findpath(int x1, int y1, int flag, SDL_Surface* map_)
+	bool findpath(int x1, int y1, int& flag, SDL_Surface* map_, bool iseaten)
 	{
 		static int count = 0;
 		bool foundpath = false;
 		bool isright = false, isleft = false, isup = false, isdown = false;
-		if (((rect.x <= x1 && rect.x >= x1 - 10) && (rect.y <= y1 && rect.y >= y1 - 10)) || ((rect.x <= x1 && rect.x >= x1 + 10) && (rect.y <= y1 && rect.y >= y1 + 10)) && (img != nullptr))
+		if (((rect.x <= x1 && rect.x >= x1 - 23) && (rect.y <= y1 && rect.y >= y1 - 23)) || ((rect.x <= x1 && rect.x >= x1 + 23) && (rect.y <= y1 && rect.y >= y1 + 23)) && ((!iseaten) || (img != nullptr)))
 		{
+			cout << "cout" << endl;
 			return true;
 		}
 		else
@@ -403,7 +411,6 @@ public:
 				}
 			}
 			count++;
-			Sleep(10);
 			return false;
 		}
 	}
@@ -582,11 +589,11 @@ public:
 					pac->move_right();
 				}
 			}
-			cherry = haseaten(&cherry_rect, cherry, pac->get_rect(), pac->get_caneat(), c);
-			banana = haseaten(&banana_rect, banana, pac->get_rect(), pac->get_caneat(), c);
-			orange = haseaten(&orange_rect, orange, pac->get_rect(), pac->get_caneat(), c);
-			pear = haseaten(&pear_rect, pear, pac->get_rect(), pac->get_caneat(), c);
-			strw = haseaten(&strw_rect, strw, pac->get_rect(), pac->get_caneat(), c);
+			cherry = foodeaten(&cherry_rect, cherry, pac->get_rect(), pac->get_caneat(), c);
+			banana = foodeaten(&banana_rect, banana, pac->get_rect(), pac->get_caneat(), c);
+			orange = foodeaten(&orange_rect, orange, pac->get_rect(), pac->get_caneat(), c);
+			pear = foodeaten(&pear_rect, pear, pac->get_rect(), pac->get_caneat(), c);
+			strw = foodeaten(&strw_rect, strw, pac->get_rect(), pac->get_caneat(), c);
 			if (pac->get_caneat())
 			{
 				time = double((clock() - begin) / CLOCKS_PER_SEC);
@@ -598,10 +605,10 @@ public:
 					enemies[2]->set_surface("escaping_ghost_1.png");
 				if (!enemy_iseaten[3])
 					enemies[3]->set_surface("escaping_ghost_1.png");
-				enemies[0]->haseaten(pac->get_rect());
-				enemies[1]->haseaten(pac->get_rect());
-				enemies[2]->haseaten(pac->get_rect());
-				enemies[3]->haseaten(pac->get_rect());
+				enemies[0]->set_surface(enemies[0]->haseaten(pac->get_rect(), enemy_iseaten[0]));
+				enemies[1]->set_surface(enemies[1]->haseaten(pac->get_rect(), enemy_iseaten[1]));
+				enemies[2]->set_surface(enemies[2]->haseaten(pac->get_rect(), enemy_iseaten[2]));
+				enemies[3]->set_surface(enemies[3]->haseaten(pac->get_rect(), enemy_iseaten[3]));
 			}
 			if (time >= 20)
 			{
@@ -618,17 +625,18 @@ public:
 					enemies[3]->set_surface("clyde_1.png");
 				pac->set_caneat(false);
 			}
-			if ((!enemies[0]->findpath(pac->get_x(), pac->get_y(), enemy_flag[0], map_) ||
-				!enemies[1]->findpath(pac->get_x(), pac->get_y(), enemy_flag[1], map_) ||
-				!enemies[2]->findpath(pac->get_x(), pac->get_y(), enemy_flag[2], map_) ||
-				!enemies[3]->findpath(pac->get_x(), pac->get_y(), enemy_flag[3], map_)) && (!pac->get_caneat()))
+			cout << pac->get_caneat() << endl;
+			if ((enemies[0]->findpath(pac->get_x(), pac->get_y(), enemy_flag[0], map_, enemy_iseaten[0]) ||
+				enemies[1]->findpath(pac->get_x(), pac->get_y(), enemy_flag[1], map_, enemy_iseaten[1]) ||
+				enemies[2]->findpath(pac->get_x(), pac->get_y(), enemy_flag[2], map_, enemy_iseaten[2]) ||
+				enemies[3]->findpath(pac->get_x(), pac->get_y(), enemy_flag[3], map_, enemy_iseaten[3])) &&
+				(!pac->get_caneat()))
 			{
 				cout << "Hello" << endl;
 				isrunning = false;
 			}
 			if ((enemies[0]->get_surface() == nullptr) && (enemies[1]->get_surface() == nullptr) && (enemies[2]->get_surface() == nullptr) && (enemies[3]->get_surface() == nullptr))
 			{
-				cout << "Hello" << endl;
 				isrunning = false;
 			}
 			SDL_BlitSurface(bg, NULL, window_surface, NULL);
@@ -650,15 +658,15 @@ public:
 			SDL_UpdateWindowSurface(win);
 			Sleep(6);
 		}
-		SDL_Delay(3000);
 	}
 
-	SDL_Surface* haseaten(SDL_Rect* food_rect, SDL_Surface* food_surface, SDL_Rect* pac_rect, bool caneat, int c)
+	SDL_Surface* foodeaten(SDL_Rect* food_rect, SDL_Surface* food_surface, SDL_Rect* pac_rect, bool caneat, int c)
 	{
-		if ((pac_rect->x <= food_rect->x + 25 && pac_rect->x >= food_rect->x) && (pac_rect->y <= food_rect->y + 25 && pac_rect->y >= food_rect->y))
+		if (((pac_rect->x <= food_rect->x && pac_rect->x >= food_rect->x - 23) && (pac_rect->y <= food_rect->y && pac_rect->y >= food_rect->y - 23)) && (food_surface != nullptr))
 		{
 			food_surface = nullptr;
 			pac->set_caneat(true);
+			caneat = true;
 			c += 20;
 		}
 		return food_surface;
@@ -931,26 +939,6 @@ void give_randpos(int& x, int& y, SDL_Surface* map_)
 	}
 }
 
-SDL_Surface* haseaten(SDL_Rect* food_rect, SDL_Surface* food_surface, SDL_Rect* pac_rect, bool& caneat, int& c)
-{
-	if ((pac_rect->x <= food_rect->x + 25 && pac_rect->x >= food_rect->x) && (pac_rect->y <= food_rect->y + 25 && pac_rect->y >= food_rect->y))
-	{
-		food_surface = nullptr;
-		caneat = true;
-		c += 20;
-	}
-	return food_surface;
-}
-
-SDL_Surface* haseaten(SDL_Rect* enemy_rect, SDL_Surface* enemy_surface, SDL_Rect* pac_rect, bool& iseaten)
-{
-	if ((pac_rect->x <= enemy_rect->x + 23 && pac_rect->x >= enemy_rect->x) && (pac_rect->y <= enemy_rect->y + 23 && pac_rect->y >= enemy_rect->y))
-	{
-		enemy_surface = nullptr;
-		iseaten = true;
-	}
-	return enemy_surface;
-}
 
 int main(int argc, char** argv)
 {
