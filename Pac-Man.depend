@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1688784518 source:c:\my programs\oop\pac-man\main.cpp
+1688875078 source:c:\my programs\oop\pac-man\main.cpp
 	<iostream>
 	<SDL.h>
 	<SDL_image.h>
