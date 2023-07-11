@@ -7,6 +7,8 @@
 #include <ctime>
 #include <random>
 #include <ctime>
+#include <string>
+#include <cstring>
 
 #define move_y 1
 #define move_x 1
@@ -169,6 +171,20 @@ public:
 		isdown = val;
 	}
 
+	void teleport()
+	{
+		if (rect.x == 420 && (rect.y >= 218 && rect.y <= 245))
+		{
+			rect.x = 18;
+			rect.y = 220;
+		}
+		else if (rect.x == 18 && (rect.y >= 218 && rect.y <= 245))
+		{
+			rect.x = 420;
+			rect.y = 220;
+		}
+	}
+
 	string ani(string part = "")
 	{
 		string img[3] = { "pacman.png", "pacman_" + part + "_1.png", "pacman_" + part + "_2.png" };
@@ -216,31 +232,20 @@ public:
 
 class Enemy :public Character
 {
-	bool iseaten;
-	string img_arr[4] = { name + "_1.png", name + "_2.png", name + "3.png", name + "_4.png" };
 	string name;
 	int flag;
 
 public:
 
-	Enemy(string img_path, string name) :Character(img_path)
+	Enemy(string img_path, string n) :Character(img_path)
 	{
-		/*iseaten = false;*/
 		flag = 0;
+		name = n;
 	}
-
-	/*void set_iseaten(bool val)
-	{
-		iseaten = val;
-	}
-
-	bool get_iseaten()
-	{
-		return iseaten;
-	}*/
 
 	string ani(string part = "")
 	{
+		string img_arr[4] = { name + "_1.png", name + "_2.png", name + "_3.png", name + "_4.png" };
 		static int num = 0;
 		if (num == 3)
 		{
@@ -251,7 +256,8 @@ public:
 
 	SDL_Surface* haseaten(SDL_Rect* pac_rect, bool& iseaten)
 	{
-		if ((pac_rect->x <= rect.x + 23 && pac_rect->x >= rect.x) && (pac_rect->y <= rect.y + 23 && pac_rect->y >= rect.y))
+		if (((pac_rect->x >= rect.x - 5 && pac_rect->x <= rect.x) && (pac_rect->y >= rect.y - 5 && pac_rect->y <= rect.y + 23)) ||
+			((pac_rect->x >= rect.x && pac_rect->x <= rect.x + 5) && (pac_rect->y >= rect.y - 5 && pac_rect->y <= rect.y + 23)))
 		{
 			img = nullptr;
 			iseaten = true;
@@ -264,9 +270,10 @@ public:
 		static int count = 0;
 		bool foundpath = false;
 		bool isright = false, isleft = false, isup = false, isdown = false;
-		if (((rect.x <= x1 && rect.x >= x1 - 23) && (rect.y <= y1 && rect.y >= y1 - 23)) || ((rect.x <= x1 && rect.x >= x1 + 23) && (rect.y <= y1 && rect.y >= y1 + 23)) && ((!iseaten) || (img != nullptr)))
+		if ((((rect.x >= x1 - 5 && rect.x <= x1) && (rect.y >= y1 - 5 && rect.y <= y1 + 23)) ||
+			((rect.x >= x1 && rect.x <= x1 + 5) && (rect.y >= y1 - 5 && rect.y <= y1 + 23)))
+			&& (!iseaten))
 		{
-			cout << "cout" << endl;
 			return true;
 		}
 		else
@@ -466,11 +473,11 @@ public:
 		enemy_flag[1] = 0;
 		enemy_flag[2] = 1;
 		enemy_flag[3] = 1;
-		give_randpos(cherry_rect.x, cherry_rect.y, map_);
-		give_randpos(banana_rect.x, banana_rect.y, map_);
-		give_randpos(orange_rect.x, orange_rect.y, map_);
-		give_randpos(strw_rect.x, strw_rect.y, map_);
-		give_randpos(pear_rect.x, pear_rect.y, map_);
+		cherry_rect.x = 90; cherry_rect.y = 12;
+		strw_rect.x = 75; strw_rect.y = 460;
+		banana_rect.x = 360; banana_rect.y = 460;
+		pear_rect.x = 364; pear_rect.y = 12;
+		orange_rect.x = 210; orange_rect.y = 78;
 		score = 0;
 		isrunning = true;
 	}
@@ -511,11 +518,11 @@ public:
 
 	void game()
 	{
-		win = SDL_CreateWindow("Pac Man", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 500, 500, 0);
+		win = SDL_CreateWindow("Pac Man", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 446, 600, 0);
 		window_surface = SDL_GetWindowSurface(win);
 		double time = 0;
 		clock_t begin = clock();
-		int c = 0;
+		int c = 0, count = 0;
 		while (isrunning)
 		{
 			while (SDL_PollEvent(&ev))
@@ -560,7 +567,7 @@ public:
 			if (pac->get_isup())
 			{
 				pac->set_surface(pac->ani("oben").c_str());
-				if (pac->ispath(pac->get_y() - 1, pac->get_x(), map_) && pac->ispath(pac->get_y() - 1, pac->get_x() + 20, map_) && pac->ispath(pac->get_y() - 1, pac->get_x() + 10, map_))
+				if (pac->ispath(pac->get_y() - 1, pac->get_x(), map_) && pac->ispath(pac->get_y() - 1, pac->get_x() + 18, map_) && pac->ispath(pac->get_y() - 1, pac->get_x() + 10, map_))
 				{
 					pac->move_up();
 				}
@@ -568,7 +575,7 @@ public:
 			if (pac->get_isdown())
 			{
 				pac->set_surface(pac->ani("unten").c_str());
-				if (ispath(pac->get_y() + 23, pac->get_x(), map_) && ispath(pac->get_y() + 23, pac->get_x() + 20, map_) && ispath(pac->get_y() + 23, pac->get_x() + 10, map_))
+				if (ispath(pac->get_y() + 23, pac->get_x(), map_) && ispath(pac->get_y() + 23, pac->get_x() + 18, map_) && ispath(pac->get_y() + 23, pac->get_x() + 10, map_))
 				{
 					pac->move_down();
 				}
@@ -576,7 +583,7 @@ public:
 			if (pac->get_isleft())
 			{
 				pac->set_surface(pac->ani("links").c_str());
-				if (ispath(pac->get_y(), pac->get_x() - 1, map_) && ispath(pac->get_y() + 20, pac->get_x() - 1, map_) && ispath(pac->get_y() + 10, pac->get_x() - 1, map_))
+				if (ispath(pac->get_y(), pac->get_x() - 1, map_) && ispath(pac->get_y() + 18, pac->get_x() - 1, map_) && ispath(pac->get_y() + 10, pac->get_x() - 1, map_))
 				{
 					pac->move_left();
 				}
@@ -584,7 +591,7 @@ public:
 			if (pac->get_isright())
 			{
 				pac->set_surface(pac->ani("rechts").c_str());
-				if (ispath(pac->get_y(), pac->get_x() + 23, map_) && ispath(pac->get_y() + 20, pac->get_x() + 23, map_) && ispath(pac->get_y() + 10, pac->get_x() + 23, map_))
+				if (ispath(pac->get_y(), pac->get_x() + 23, map_) && ispath(pac->get_y() + 18, pac->get_x() + 23, map_) && ispath(pac->get_y() + 10, pac->get_x() + 23, map_))
 				{
 					pac->move_right();
 				}
@@ -610,7 +617,7 @@ public:
 				enemies[2]->set_surface(enemies[2]->haseaten(pac->get_rect(), enemy_iseaten[2]));
 				enemies[3]->set_surface(enemies[3]->haseaten(pac->get_rect(), enemy_iseaten[3]));
 			}
-			if (time >= 20)
+			if (time >= c)
 			{
 				pac->set_caneat(false);
 				time = 0;
@@ -625,17 +632,15 @@ public:
 					enemies[3]->set_surface("clyde_1.png");
 				pac->set_caneat(false);
 			}
-			cout << pac->get_caneat() << endl;
 			if ((enemies[0]->findpath(pac->get_x(), pac->get_y(), enemy_flag[0], map_, enemy_iseaten[0]) ||
 				enemies[1]->findpath(pac->get_x(), pac->get_y(), enemy_flag[1], map_, enemy_iseaten[1]) ||
 				enemies[2]->findpath(pac->get_x(), pac->get_y(), enemy_flag[2], map_, enemy_iseaten[2]) ||
 				enemies[3]->findpath(pac->get_x(), pac->get_y(), enemy_flag[3], map_, enemy_iseaten[3])) &&
 				(!pac->get_caneat()))
 			{
-				cout << "Hello" << endl;
 				isrunning = false;
 			}
-			if ((enemies[0]->get_surface() == nullptr) && (enemies[1]->get_surface() == nullptr) && (enemies[2]->get_surface() == nullptr) && (enemies[3]->get_surface() == nullptr))
+			if ((enemy_iseaten[0]) && (enemy_iseaten[1]) && (enemy_iseaten[2]) && (enemy_iseaten[3]))
 			{
 				isrunning = false;
 			}
@@ -650,24 +655,64 @@ public:
 				SDL_BlitSurface(enemies[2]->get_surface(), NULL, window_surface, enemies[2]->get_rect());
 			if (!enemy_iseaten[3])
 				SDL_BlitSurface(enemies[3]->get_surface(), NULL, window_surface, enemies[3]->get_rect());
+			pac->teleport();
+			if (count % 100 == 0)
+			{
+				enemies[0]->set_surface(enemies[0]->ani());
+				enemies[1]->set_surface(enemies[1]->ani());
+				enemies[2]->set_surface(enemies[2]->ani());
+				enemies[3]->set_surface(enemies[3]->ani());
+			}
 			SDL_BlitSurface(cherry, NULL, window_surface, &cherry_rect);
 			SDL_BlitSurface(banana, NULL, window_surface, &banana_rect);
 			SDL_BlitSurface(pear, NULL, window_surface, &pear_rect);
 			SDL_BlitSurface(orange, NULL, window_surface, &orange_rect);
 			SDL_BlitSurface(strw, NULL, window_surface, &strw_rect);
 			SDL_UpdateWindowSurface(win);
+			count++;
 			Sleep(6);
 		}
 	}
 
-	SDL_Surface* foodeaten(SDL_Rect* food_rect, SDL_Surface* food_surface, SDL_Rect* pac_rect, bool caneat, int c)
+	/*void display_score(string path1)
 	{
-		if (((pac_rect->x <= food_rect->x && pac_rect->x >= food_rect->x - 23) && (pac_rect->y <= food_rect->y && pac_rect->y >= food_rect->y - 23)) && (food_surface != nullptr))
+		int test = score, mod = 0, i = 0;
+		int len = strlen(to_string(score).c_str());
+		SDL_Surface* scores[len];
+		SDL_Rect score_rect;
+		score_rect.x = 400; score_rect.y = 50;
+		string score_img[len];
+		while (test != 0)
+		{
+			mod = test % 10;
+			test = test / 10;
+			score_img[i] = to_string(mod) + path1;
+			i++;
+		}
+		for (int i = 0; i < len; i++)
+		{
+			scores[i] = IMG_Load(score_img[i].c_str());
+		}
+		i = len - 1;
+		while (i >= 0)
+		{
+			SDL_BlitSurface(scores[i], NULL, window_surface, &score_rect);
+			SDL_UpdateWindowSurface(win);
+			i--;
+			score_rect.x += 10;
+		}
+	}*/
+
+	SDL_Surface* foodeaten(SDL_Rect* food_rect, SDL_Surface* food_surface, SDL_Rect* pac_rect, bool caneat, int& c)
+	{
+		if ((((pac_rect->x >= food_rect->x - 10 && pac_rect->x <= food_rect->x) && (pac_rect->y >= food_rect->y - 10 && pac_rect->y <= food_rect->y + 28)) ||
+			((pac_rect->x >= food_rect->x && pac_rect->x <= food_rect->x + 10) && (pac_rect->y >= food_rect->y - 10 && pac_rect->y <= food_rect->y + 28)))
+			&& (food_surface != nullptr))
 		{
 			food_surface = nullptr;
 			pac->set_caneat(true);
-			caneat = true;
 			c += 20;
+			score += 100;
 		}
 		return food_surface;
 	}
