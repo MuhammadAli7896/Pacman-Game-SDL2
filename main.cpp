@@ -438,7 +438,6 @@ class Game
 	SDL_Event ev;
 	Pacman* pac;
 	Enemy* enemies[4];
-	bool enemy_iseaten[4];
 	SDL_Surface* cherry;
 	SDL_Surface* banana;
 	SDL_Surface* pear;
@@ -452,6 +451,7 @@ class Game
 	int enemy_flag[4];
 	int score;
 	bool isrunning;
+	bool enemy_iseaten[4];
 
 public:
 
@@ -755,7 +755,7 @@ public:
 		{
 			food_surface = nullptr;
 			pac->set_caneat(true);
-			c += 20;
+			c += 10;
 			score += 100;
 		}
 		return food_surface;
