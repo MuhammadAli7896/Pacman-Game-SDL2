@@ -1,9 +1,10 @@
 # depslib dependency file v1.0
-1689081069 source:c:\my programs\oop\pac-man\main.cpp
+1689126159 source:c:\my programs\oop\pac-man\main.cpp
 	<iostream>
 	<SDL2/SDL.h>
 	<SDL2/SDL_image.h>
 	<windows.h>
+	<conio.h>
 	<cmath>
 	<vector>
 	<ctime>
