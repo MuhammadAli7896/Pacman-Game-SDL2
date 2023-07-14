@@ -965,7 +965,6 @@ int main(int argc, char** argv)
 {
 	SDL_Event ev;
 	while (true) {
-
 		Game* PacMan = new Game;
 		PacMan->game();
 		SDL_PollEvent(&ev);
@@ -974,6 +973,7 @@ int main(int argc, char** argv)
 		{
 			break;
 		}
+		// restarting 
 	}
 
 	return 0;
