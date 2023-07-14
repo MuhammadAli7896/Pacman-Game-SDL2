@@ -267,7 +267,7 @@ public:
 	SDL_Surface* haseaten(SDL_Rect* pac_rect, bool& iseaten, int& score)
 	{
 		// function for pacman eating enemy
-		if (((pac_rect->x >= rect.x - 5 && pac_rect->x <= rect.x) && (pac_rect->y >= rect.y - 5 && pac_rect->y <= rect.y + 23)) ||
+		if (((pac_rect->x >= rect.x - 5 && pac_rect->x <= rect.x + 5) && (pac_rect->y >= rect.y - 5 && pac_rect->y <= rect.y + 23)) ||
 			((pac_rect->x >= rect.x && pac_rect->x <= rect.x + 5) && (pac_rect->y >= rect.y - 5 && pac_rect->y <= rect.y + 23)) ||
 			((pac_rect->y >= rect.y && pac_rect->y <= rect.y + 5) && (pac_rect->x >= rect.x - 5 && pac_rect->x <= rect.x + 23)) ||
 			((pac_rect->y >= rect.y - 5 && pac_rect->y <= rect.y) && (pac_rect->x >= rect.x - 5 && pac_rect->x <= rect.x + 23)))
@@ -971,7 +971,9 @@ int main(int argc, char** argv)
 		SDL_Delay(4000);
 		if (ev.type == SDL_QUIT)
 		{
-			break;
+			cout << "sdada" << endl;
+			SDL_Quit();
+			exit(1);
 		}
 		// restarting 
 	}
