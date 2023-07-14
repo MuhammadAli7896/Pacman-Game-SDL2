@@ -707,9 +707,6 @@ public:
 			count++;
 			Sleep(6);
 		}
-		//SDL_Delay(3000);
-
-		//game(); // restarting
 	}
 
 	int main_menu()
@@ -971,7 +968,6 @@ int main(int argc, char** argv)
 		SDL_Delay(4000);
 		if (ev.type == SDL_QUIT)
 		{
-			cout << "sdada" << endl;
 			SDL_Quit();
 			exit(1);
 		}
