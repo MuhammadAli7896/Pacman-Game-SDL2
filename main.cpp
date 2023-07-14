@@ -41,6 +41,11 @@ public:
 		rect.y = 0;
 	}
 
+	~Character()
+	{
+		SDL_FreeSurface(img);
+	}
+
 	SDL_Surface* get_surface()
 	{
 		return img;
@@ -92,6 +97,7 @@ public:
 
 	bool ispath(int x, int y, SDL_Surface* map_)
 	{
+		// checking that the path is not a wall 
 		Uint32 pixelcolor;
 		Uint8 r, g, b;
 		pixelcolor = getPixelColor(map_, y, x);
@@ -103,7 +109,7 @@ public:
 		}
 		return false;
 	}
-	virtual string ani(string part = "") = 0;
+	virtual string animate(string part = "") = 0;
 };
 
 
@@ -174,20 +180,22 @@ public:
 
 	void teleport()
 	{
+		// function for teleportation of pacman from left to right and vice-versa
 		if (rect.x >= 420 && (rect.y >= 210 && rect.y <= 245))
 		{
 			rect.x = 19;
 			rect.y = 220;
 		}
-		else if (rect.x <= 18  && (rect.y >= 210 && rect.y <= 245))
+		else if (rect.x <= 18 && (rect.y >= 210 && rect.y <= 245))
 		{
 			rect.x = 419;
 			rect.y = 220;
 		}
 	}
 
-	string ani(string part = "")
+	string animate(string part = "")
 	{
+		// animation for pacman 
 		string img[3] = { "pacman.png", "pacman_" + part + "_1.png", "pacman_" + part + "_2.png" };
 		static int num = 0;
 		if (num == 2)
@@ -199,6 +207,7 @@ public:
 
 	SDL_Surface* haseaten(SDL_Rect* food_rect, SDL_Surface* food_surface, int& c)
 	{
+		// function for eating food
 		if ((rect.x <= food_rect->x + 25 && rect.x >= food_rect->x) && (rect.y <= food_rect->y + 25 && rect.y >= food_rect->y))
 		{
 			food_surface = nullptr;
@@ -244,8 +253,9 @@ public:
 		name = n;
 	}
 
-	string ani(string part = "")
+	string animate(string part = "")
 	{
+		// function to animate for enemy class
 		string img_arr[4] = { name + "_1.png", name + "_2.png", name + "_3.png", name + "_4.png" };
 		if (num == 3)
 		{
@@ -254,30 +264,30 @@ public:
 		return img_arr[num++];
 	}
 
-	SDL_Surface* haseaten(SDL_Rect* pac_rect, bool& iseaten, int &score)
+	SDL_Surface* haseaten(SDL_Rect* pac_rect, bool& iseaten, int& score)
 	{
+		// function for pacman eating enemy
 		if (((pac_rect->x >= rect.x - 5 && pac_rect->x <= rect.x) && (pac_rect->y >= rect.y - 5 && pac_rect->y <= rect.y + 23)) ||
 			((pac_rect->x >= rect.x && pac_rect->x <= rect.x + 5) && (pac_rect->y >= rect.y - 5 && pac_rect->y <= rect.y + 23)) ||
 			((pac_rect->y >= rect.y && pac_rect->y <= rect.y + 5) && (pac_rect->x >= rect.x - 5 && pac_rect->x <= rect.x + 23)) ||
 			((pac_rect->y >= rect.y - 5 && pac_rect->y <= rect.y) && (pac_rect->x >= rect.x - 5 && pac_rect->x <= rect.x + 23)))
 		{
-			// first condition is wrt to x on left and right if pacman is in range of y and y + 23
 			img = nullptr;
 			iseaten = true;
-			score += 500;
 		}
 		return img;
 	}
 
 	bool findpath(int x1, int y1, int& flag, SDL_Surface* map_, bool iseaten)
 	{
+		// function for enemy movement and enemy eating pacman
 		static int count = 0;
 		bool foundpath = false;
 		bool isright = false, isleft = false, isup = false, isdown = false;
 		if ((((rect.x >= x1 - 5 && rect.x <= x1) && (rect.y >= y1 - 5 && rect.y <= y1 + 23)) ||
 			((rect.x >= x1 && rect.x <= x1 + 5) && (rect.y >= y1 - 5 && rect.y <= y1 + 23) ||
-			((rect.y >= y1 && rect.y <= y1 + 5) && (rect.x >= x1 - 5 && rect.x <= x1 + 23)) ||
-			((rect.y >= y1 - 5 && rect.y <= y1) && (rect.x >= x1 - 5 && rect.x <= x1 + 23)))
+				((rect.y >= y1 && rect.y <= y1 + 5) && (rect.x >= x1 - 5 && rect.x <= x1 + 23)) ||
+				((rect.y >= y1 - 5 && rect.y <= y1) && (rect.x >= x1 - 5 && rect.x <= x1 + 23)))
 			&& (!iseaten)))
 		{
 			return true;
@@ -488,8 +498,31 @@ public:
 		isrunning = true;
 	}
 
+	~Game()
+	{
+		delete pac;
+		for (int i = 0; i < 4; i++)
+		{
+			delete enemies[i];
+		}
+		delete enemies;
+
+		SDL_FreeSurface(cherry);
+		SDL_FreeSurface(strw);
+		SDL_FreeSurface(banana);
+		SDL_FreeSurface(orange);
+		SDL_FreeSurface(pear);
+		SDL_FreeSurface(bg);
+		SDL_FreeSurface(map_);
+		SDL_DestroyWindow(win);
+		SDL_FreeSurface(window_surface);
+		IMG_Quit();
+		SDL_Quit();
+	}
+
 	bool ispath(int x, int y, SDL_Surface* map_)
 	{
+		// checking that the path is not a wall
 		Uint32 pixelcolor;
 		Uint8 r, g, b;
 		pixelcolor = getPixelColor(map_, y, x);
@@ -502,25 +535,6 @@ public:
 		return false;
 	}
 
-	void give_randpos(int& x, int& y, SDL_Surface* map_)
-	{
-		int test_x;
-		int test_y;
-		while (1)
-		{
-			test_x = rand_value(0, 400);
-			test_y = rand_value(0, 400);
-			if (ispath(test_y + 23, test_x, map_) && ispath(test_y + 23, test_x + 23, map_) && ispath(test_y + 23, test_x + 11, map_) &&
-				ispath(test_y + 23, test_x + 23, map_) && ispath(test_y, test_x + 23, map_) && ispath(test_y + 11, test_x + 23, map_) &&
-				ispath(test_y, test_x, map_) && ispath(test_y + 11, test_x, map_) && ispath(test_y, test_x + 23, map_) && ispath(test_y, test_x + 11, map_)
-				)
-			{
-				x = test_x;
-				y = test_y;
-				break;
-			}
-		}
-	}
 
 	void game()
 	{
@@ -537,6 +551,7 @@ public:
 				if (ev.type == SDL_QUIT)
 				{
 					isrunning = false;
+					exit(0);
 				}
 				else if (ev.type == SDL_KEYDOWN)
 				{
@@ -573,7 +588,7 @@ public:
 			}
 			if (pac->get_isup())
 			{
-				pac->set_surface(pac->ani("oben").c_str());
+				pac->set_surface(pac->animate("oben").c_str());
 				if (pac->ispath(pac->get_y() - 1, pac->get_x(), map_) && pac->ispath(pac->get_y() - 1, pac->get_x() + 18, map_) && pac->ispath(pac->get_y() - 1, pac->get_x() + 10, map_))
 				{
 					pac->move_up();
@@ -581,7 +596,7 @@ public:
 			}
 			if (pac->get_isdown())
 			{
-				pac->set_surface(pac->ani("unten").c_str());
+				pac->set_surface(pac->animate("unten").c_str());
 				if (ispath(pac->get_y() + 23, pac->get_x(), map_) && ispath(pac->get_y() + 23, pac->get_x() + 18, map_) && ispath(pac->get_y() + 23, pac->get_x() + 10, map_))
 				{
 					pac->move_down();
@@ -589,7 +604,7 @@ public:
 			}
 			if (pac->get_isleft())
 			{
-				pac->set_surface(pac->ani("links").c_str());
+				pac->set_surface(pac->animate("links").c_str());
 				if (ispath(pac->get_y(), pac->get_x() - 1, map_) && ispath(pac->get_y() + 18, pac->get_x() - 1, map_) && ispath(pac->get_y() + 10, pac->get_x() - 1, map_))
 				{
 					pac->move_left();
@@ -597,7 +612,7 @@ public:
 			}
 			if (pac->get_isright())
 			{
-				pac->set_surface(pac->ani("rechts").c_str());
+				pac->set_surface(pac->animate("rechts").c_str());
 				if (ispath(pac->get_y(), pac->get_x() + 23, map_) && ispath(pac->get_y() + 18, pac->get_x() + 23, map_) && ispath(pac->get_y() + 10, pac->get_x() + 23, map_))
 				{
 					pac->move_right();
@@ -678,10 +693,10 @@ public:
 			pac->teleport();
 			if (count % 100 == 0)
 			{
-				enemies[0]->set_surface(enemies[0]->ani());
-				enemies[1]->set_surface(enemies[1]->ani());
-				enemies[2]->set_surface(enemies[2]->ani());
-				enemies[3]->set_surface(enemies[3]->ani());
+				enemies[0]->set_surface(enemies[0]->animate());
+				enemies[1]->set_surface(enemies[1]->animate());
+				enemies[2]->set_surface(enemies[2]->animate());
+				enemies[3]->set_surface(enemies[3]->animate());
 			}
 			SDL_BlitSurface(cherry, NULL, window_surface, &cherry_rect);
 			SDL_BlitSurface(banana, NULL, window_surface, &banana_rect);
@@ -692,11 +707,14 @@ public:
 			count++;
 			Sleep(6);
 		}
-		SDL_Delay(3000);
+		//SDL_Delay(3000);
+
+		//game(); // restarting
 	}
 
 	int main_menu()
 	{
+		// starting image loading
 		SDL_Surface* main = IMG_Load("main.jpg");
 		SDL_Rect rect;
 		SDL_BlitSurface(main, NULL, window_surface, NULL);
@@ -714,39 +732,9 @@ public:
 		return 1;
 	}
 
-	//void display_score(string path1)
-	//{
-	//	int test = score, mod = 0, i = 0;
-	//	int len2 = strlen(to_string(score).c_str());
-	//	int len = len2;
-	//	SDL_Surface* scores[len];
-	//	SDL_Rect score_rect;
-	//	score_rect.x = 400; score_rect.y = 50;
-	//	string score_img[len];
-	//	//int len2 = len;
-	//	while (test != 0)
-	//	{
-	//		mod = test % 10;
-	//		test = test / 10;
-	//		score_img[i] = to_string(mod) + path1;
-	//		i++;
-	//	}
-	//	for (int i = 0; i < len2; i++)
-	//	{
-	//		scores[i] = IMG_Load(score_img[i].c_str());
-	//	}
-	//	i = len2 - 1;
-	//	while (i >= 0)
-	//	{
-	//		SDL_BlitSurface(scores[i], NULL, window_surface, &score_rect);
-	//		SDL_UpdateWindowSurface(win);
-	//		i--;
-	//		score_rect.x += 10;
-	//	}
-	//}
-
 	SDL_Surface* foodeaten(SDL_Rect* food_rect, SDL_Surface* food_surface, SDL_Rect* pac_rect, bool caneat, int& c)
 	{
+		// function for eating food
 		if ((((pac_rect->x >= food_rect->x - 10 && pac_rect->x <= food_rect->x) && (pac_rect->y >= food_rect->y - 10 && pac_rect->y <= food_rect->y + 28)) ||
 			((pac_rect->x >= food_rect->x && pac_rect->x <= food_rect->x + 10) && (pac_rect->y >= food_rect->y - 10 && pac_rect->y <= food_rect->y + 28)) ||
 			((pac_rect->y >= food_rect->y && pac_rect->y <= food_rect->y + 10) && (pac_rect->x >= food_rect->x - 10 && pac_rect->x <= food_rect->x + 28)) ||
@@ -756,11 +744,12 @@ public:
 			food_surface = nullptr;
 			pac->set_caneat(true);
 			c += 10;
-			score += 100;
 		}
 		return food_surface;
 	}
+
 };
+
 
 Uint32 getPixelColor(SDL_Surface* surface, int x, int y)
 {
@@ -769,6 +758,7 @@ Uint32 getPixelColor(SDL_Surface* surface, int x, int y)
 	SDL_GetRGB(*(Uint32*)pixel, surface->format, &r, &g, &b);
 	return SDL_MapRGB(surface->format, r, g, b);
 }
+
 
 int rand_value(int a, int b)
 {
@@ -780,40 +770,12 @@ int rand_value(int a, int b)
 	return c;
 }
 
-int dist(int x, int y, int x1, int y1)
-{
-	int diff1 = pow(x1 - x, 2);
-	int diff2 = pow(y1 - y, 2);
-	return sqrt(diff2 + diff1);
-}
 
-int min_d(int arr[])
-{
-	int mini = 0, count = 0;
-	int i = 1;
-	while (i < 2)
-	{
-		if (arr[mini] >= 0)
-		{
-			if (arr[i] < arr[mini] && arr[i] != -1)
-			{
-				mini = i;
-				count++;
-			}
-			i++;
-			continue;
-		}
-		mini++;
-	}
-	if (count == 0)
-	{
-		return -1;
-	}
-	return mini;
-}
+
 
 bool ispath(int x, int y, SDL_Surface* map_)
 {
+	// to check that the path is not a wall 
 	Uint32 pixelcolor;
 	Uint8 r, g, b;
 	pixelcolor = getPixelColor(map_, y, x);
@@ -826,8 +788,10 @@ bool ispath(int x, int y, SDL_Surface* map_)
 	return false;
 }
 
+
 bool findpath(int& x, int& y, int x1, int y1, int& flag, SDL_Surface* map_, SDL_Surface* enemy)
 {
+	// function for movement of enemy
 	static int count = 0;
 	bool foundpath = false;
 	bool isright = false, isleft = false, isup = false, isdown = false;
@@ -984,20 +948,9 @@ bool findpath(int& x, int& y, int x1, int y1, int& flag, SDL_Surface* map_, SDL_
 
 
 
-void print_map(int** map_, int row, int col)
+string pacmananimate(string part)
 {
-	for (int i = 0; i < row; i++)
-	{
-		for (int j = 0; j < col; j++)
-		{
-			cout << map_[i][j] << " ";
-		}
-		cout << "\n";
-	}
-}
-
-string pacmanani(string part)
-{
+	// function for animation of pacman
 	string img[3] = { "pacman.png", "pacman_" + part + "_1.png", "pacman_" + part + "_2.png" };
 	static int num = 0;
 	if (num == 2)
@@ -1008,223 +961,20 @@ string pacmanani(string part)
 }
 
 
-void give_randpos(int& x, int& y, SDL_Surface* map_)
+int main(int argc, char** argv)
 {
-	int test_x;
-	int test_y;
-	while (1)
-	{
-		test_x = rand_value(0, 400);
-		test_y = rand_value(0, 400);
-		if (ispath(test_y + 23, test_x, map_) && ispath(test_y + 23, test_x + 23, map_) && ispath(test_y + 23, test_x + 11, map_) &&
-			ispath(test_y + 23, test_x + 23, map_) && ispath(test_y, test_x + 23, map_) && ispath(test_y + 11, test_x + 23, map_) &&
-			ispath(test_y, test_x, map_) && ispath(test_y + 11, test_x, map_) && ispath(test_y, test_x + 23, map_) && ispath(test_y, test_x + 11, map_)
-			)
+	SDL_Event ev;
+	while (true) {
+
+		Game* PacMan = new Game;
+		PacMan->game();
+		SDL_PollEvent(&ev);
+		SDL_Delay(4000);
+		if (ev.type == SDL_QUIT)
 		{
-			x = test_x;
-			y = test_y;
 			break;
 		}
 	}
-}
 
-
-int main(int argc, char** argv)
-{
-	Game PacMan;
-	PacMan.game();
-	/*SDL_Init(SDL_INIT_VIDEO);
-	SDL_Window* win = SDL_CreateWindow("Pac Man", SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED, 500, 500, 0);
-	SDL_Surface* window_surface = SDL_GetWindowSurface(win);
-	SDL_Surface* bg = IMG_Load("black_bg.jpg");
-	SDL_Surface* pac = IMG_Load("pacman.png");
-	SDL_Surface* map_ = IMG_Load("map.png");
-	SDL_Surface* inky = IMG_Load("inky_1.png");
-	SDL_Surface* pinky = IMG_Load("pinky_1.png");
-	SDL_Surface* blinky = IMG_Load("blinky_1.png");
-	SDL_Surface* clyde = IMG_Load("clyde_1.png");
-	SDL_Surface* cherry = IMG_Load("cherry.png");
-	SDL_Surface* banana = IMG_Load("banana.png");
-	SDL_Surface* pear = IMG_Load("pear.png");
-	SDL_Surface* orange = IMG_Load("orange.png");
-	SDL_Surface* strw = IMG_Load("strawberry.png");
-	SDL_Rect pac_rect;
-	SDL_Rect inky_rect;
-	SDL_Rect pinky_rect;
-	SDL_Rect blinky_rect;
-	SDL_Rect clyde_rect;
-	SDL_Rect cherry_rect;
-	SDL_Rect banana_rect;
-	SDL_Rect pear_rect;
-	SDL_Rect orange_rect;
-	SDL_Rect strw_rect;
-	bool inky_iseaten = false;
-	bool pinky_iseaten = false;
-	bool clyde_iseaten = false;
-	bool blinky_iseaten = false;
-	pac_rect.x = 223; pac_rect.y = 224;
-	inky_rect.x = 30; inky_rect.y = 10;
-	blinky_rect.x = 414; blinky_rect.y = 10;
-	pinky_rect.x = 30; pinky_rect.y = 471;
-	clyde_rect.x = 414; clyde_rect.y = 471;
-	give_randpos(cherry_rect.x, cherry_rect.y, map_);
-	give_randpos(banana_rect.x, banana_rect.y, map_);
-	give_randpos(orange_rect.x, orange_rect.y, map_);
-	give_randpos(strw_rect.x, strw_rect.y, map_);
-	give_randpos(pear_rect.x, pear_rect.y, map_);
-	double time = 0;
-	clock_t begin = clock();
-	SDL_Event ev;
-	int flag = 0;
-	int flag1 = 0;
-	int flag2 = 1;
-	int flag3 = 1;
-	int c = 0;
-	bool isrunning = true;
-	bool isleft = false, isright = false, isup = false, isdown = false, isout = false, caneat = false;
-	SDL_UpdateWindowSurface(win);
-	while (isrunning)
-	{
-		while (SDL_PollEvent(&ev))
-		{
-			if (ev.type == SDL_QUIT)
-			{
-				isrunning = false;
-			}
-			else if (ev.type == SDL_KEYDOWN)
-			{
-				if (ev.key.keysym.sym == SDLK_UP)
-				{
-					isup = true;
-					isdown = false;
-					isleft = false;
-					isright = false;
-				}
-				else if (ev.key.keysym.sym == SDLK_DOWN)
-				{
-					isdown = true;
-					isup = false;
-					isleft = false;
-					isright = false;
-				}
-				else if (ev.key.keysym.sym == SDLK_RIGHT)
-				{
-					isright = true;
-					isdown = false;;
-					isup = false;
-					isleft = false;
-
-				}
-				else if (ev.key.keysym.sym == SDLK_LEFT)
-				{
-					isleft = true;
-					isright = false;
-					isdown = false;;
-					isup = false;
-				}
-			}
-		}
-		if (isup)
-		{
-			pac = IMG_Load(pacmanani("oben").c_str());
-			if (ispath(pac_rect.y - 1, pac_rect.x, map_) && ispath(pac_rect.y - 1, pac_rect.x + 20, map_) && ispath(pac_rect.y - 1, pac_rect.x + 10, map_))
-			{
-				pac_rect.y -= move_y;
-			}
-		}
-		if (isdown)
-		{
-			pac = IMG_Load(pacmanani("unten").c_str());
-			if (ispath(pac_rect.y + 23, pac_rect.x, map_) && ispath(pac_rect.y + 23, pac_rect.x + 20, map_) && ispath(pac_rect.y + 23, pac_rect.x + 10, map_))
-			{
-				pac_rect.y += move_y;
-			}
-		}
-		if (isleft)
-		{
-			pac = IMG_Load(pacmanani("links").c_str());
-			if (ispath(pac_rect.y, pac_rect.x - 1, map_) && ispath(pac_rect.y + 20, pac_rect.x - 1, map_) && ispath(pac_rect.y + 10, pac_rect.x - 1, map_))
-			{
-				pac_rect.x -= move_x;
-			}
-		}
-		if (isright)
-		{
-			pac = IMG_Load(pacmanani("rechts").c_str());
-			if (ispath(pac_rect.y, pac_rect.x + 23, map_) && ispath(pac_rect.y + 20, pac_rect.x + 23, map_) && ispath(pac_rect.y + 10, pac_rect.x + 23, map_))
-			{
-				pac_rect.x += move_x;
-			}
-		}
-		cherry = haseaten(&cherry_rect, cherry, &pac_rect, caneat, c);
-		banana = haseaten(&banana_rect, banana, &pac_rect, caneat, c);
-		orange = haseaten(&orange_rect, orange, &pac_rect, caneat, c);
-		pear = haseaten(&pear_rect, pear, &pac_rect, caneat, c);
-		strw = haseaten(&strw_rect, strw, &pac_rect, caneat, c);
-		if (caneat)
-		{
-			time = double((clock() - begin) / CLOCKS_PER_SEC);
-			if (!inky_iseaten)
-				inky = IMG_Load("escaping_ghost_1.png");
-			if (!clyde_iseaten)
-				clyde = IMG_Load("escaping_ghost_1.png");
-			if (!pinky_iseaten)
-				pinky = IMG_Load("escaping_ghost_1.png");
-			if (!blinky_iseaten)
-				blinky = IMG_Load("escaping_ghost_1.png");
-			inky = haseaten(&inky_rect, inky, &pac_rect, inky_iseaten);
-			pinky = haseaten(&pinky_rect, pinky, &pac_rect, pinky_iseaten);
-			blinky = haseaten(&blinky_rect, blinky, &pac_rect, blinky_iseaten);
-			clyde = haseaten(&clyde_rect, clyde, &pac_rect, clyde_iseaten);
-		}
-		if (time >= 20)
-		{
-			caneat = false;
-			time = 0;
-			begin = clock();
-			if (!inky_iseaten)
-				inky = IMG_Load("inky_1.png");
-			if (!pinky_iseaten)
-				pinky = IMG_Load("pinky_1.png");
-			if (!blinky_iseaten)
-				blinky = IMG_Load("blinky_1.png");
-			if (!clyde_iseaten)
-				clyde = IMG_Load("clyde_1.png");
-			caneat = false;
-		}
-		if ((findpath(inky_rect.x, inky_rect.y, pac_rect.x, pac_rect.y, flag, map_, inky) ||
-			findpath(blinky_rect.x, blinky_rect.y, pac_rect.x, pac_rect.y, flag1, map_, blinky) ||
-			findpath(pinky_rect.x, pinky_rect.y, pac_rect.x, pac_rect.y, flag2, map_, pinky) ||
-			findpath(clyde_rect.x, clyde_rect.y, pac_rect.x, pac_rect.y, flag3, map_, clyde)) && (!caneat))
-		{
-			cout << "Helo" << endl;
-			isrunning = false;
-		}
-		if ((inky == nullptr) && (pinky == nullptr) && (blinky == nullptr) && (clyde == nullptr))
-		{
-			isrunning = false;
-		}
-		SDL_BlitSurface(bg, NULL, window_surface, NULL);
-		SDL_BlitSurface(map_, NULL, window_surface, NULL);
-		SDL_BlitSurface(pac, NULL, window_surface, &pac_rect);
-		if (!inky_iseaten)
-			SDL_BlitSurface(inky, NULL, window_surface, &inky_rect);
-		if (!pinky_iseaten)
-			SDL_BlitSurface(pinky, NULL, window_surface, &pinky_rect);
-		if (!blinky_iseaten)
-			SDL_BlitSurface(blinky, NULL, window_surface, &blinky_rect);
-		if (!clyde_iseaten)
-			SDL_BlitSurface(clyde, NULL, window_surface, &clyde_rect);
-		SDL_BlitSurface(cherry, NULL, window_surface, &cherry_rect);
-		SDL_BlitSurface(banana, NULL, window_surface, &banana_rect);
-		SDL_BlitSurface(pear, NULL, window_surface, &pear_rect);
-		SDL_BlitSurface(orange, NULL, window_surface, &orange_rect);
-		SDL_BlitSurface(strw, NULL, window_surface, &strw_rect);
-		SDL_UpdateWindowSurface(win);
-		Sleep(6);
-	}
-	SDL_Delay(3000);*/
 	return 0;
 }
-
